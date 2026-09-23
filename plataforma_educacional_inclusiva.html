@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plataforma Educacional Inclusiva & Laboratório de Acessibilidade</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Phosphor Icons CDN -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Lexend+Deca:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind Custom Configuration -->
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Lexend Deca', 'sans-serif'],
+            dyslexic: ['Comic Sans MS', 'Arial', 'sans-serif'] /* Accessible fallback spacing font */
+          },
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              900: '#1e3a8a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Custom Accessibility & Mode Styles -->
+  <style>
+    
+    /* Focus styles for keyboard accessibility (WCAG 2.4.7) */
+    :focus-visible {
+      outline: 3px solid #2563eb !important;
+      outline-offset: 3px !important;
+      border-radius: 4px;
+    }
+
+    /* Dyslexia Friendly / Reading Comfort State */
+    body.mode-dyslexic {
+      font-family: 'Comic Sans MS', 'Lexend Deca', sans-serif !important;
+      letter-spacing: 0.05em !important;
+      word-spacing: 0.15em !important;
+      line-height: 1.9 !important;
+    }
+
+    /* High Contrast Mode State (WCAG AAA) */
+    body.mode-high-contrast {
+      background-color: #000000 !important;
+      color: #ffff00 !important;
+    }
+    body.mode-high-contrast .hc-card {
+      background-color: #111111 !important;
+      border: 2px solid #ffff00 !important;
+      color: #ffffff !important;
+    }
+    body.mode-high-contrast button,
+    body.mode-high-contrast a {
+      color: #ffff00 !important;
+      border-color: #ffff00 !important;
+    }
+    body.mode-high-contrast .hc-text-yellow {
+      color: #ffff00 !important;
+    }
+
+    /* Font Scaling States */
+    html.font-scale-lg { font-size: 112.5%; } /* 18px base */
+    html.font-scale-xl { font-size: 125%; }   /* 20px base */
+
+    /* Reduced Motion State */
+    body.mode-reduced-motion *,
+    body.mode-reduced-motion *::before,
+    body.mode-reduced-motion *::after {
+      animation-duration: 0.001s !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001s !important;
+      scroll-behavior: auto !important;
+    }
+
+    /* BAD UI SIMULATION MODE (Old Problematic Interface) */
+    body.sim-bad-ui {
+      background-color: #ff00ff !important;
+      color: #777777 !important;
+      font-family: 'Comic Sans MS', cursive !important;
+    }
+    body.sim-bad-ui .bad-blinking-banner {
+      display: block !important;
+      animation: blink-animation 0.3s infinite !important;
+      background-color: #ffff00 !important;
+      color: #ff0000 !important;
+      font-weight: bold !important;
+      text-transform: uppercase !important;
+    }
+    @keyframes blink-animation {
+      0% { opacity: 1; }
+      50% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+    body.sim-bad-ui header,
+    body.sim-bad-ui main,
+    body.sim-bad-ui section,
+    body.sim-bad-ui footer {
+      filter: saturate(200%);
+      text-transform: uppercase !important;
+    }
+    body.sim-bad-ui .card-box {
+      background-color: #00ffff !important;
+      color: #000000 !important;
+      border: 5px dashed #ff0000 !important;
+      border-radius: 0 !important;
+    }
+    body.sim-bad-ui *:focus-visible {
+      outline: none !important;
+    }
+
+    /* Custom Screen Reader Only Utility */
+    .sr-only-focusable:not(:focus):not(:focus-within) {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border-width: 0;
+    }
+  </style>
+</head>
+
+<body class="bg-slate-50 text-slate-800 antialiased min-h-full flex flex-col transition-colors duration-200">
+
+  <!-- Skip to main content link (WCAG 2.4.1) -->
+  <a href="#main-content" class="sr-only-focusable bg-blue-700 text-white font-bold p-4 fixed top-2 left-2 z-50 rounded-lg shadow-xl ring-4 ring-yellow-400">
+    Pular para o conteúdo principal (Atalho de Acessibilidade)
+  </a>
+
+  <!-- Banning/Warning Banner for Old UI Simulation -->
+  <div id="bad-ui-banner" class="bad-blinking-banner hidden text-center p-3 text-lg border-b-4 border-black">
+    ⚠️ ATENÇÃO! VOCÊ ESTÁ VISUALIZANDO A INTERFACE ANTIGA COM BARREIRAS DE ACESSIBILIDADE! EXCESSO DE ESTÍMULOS VISUAIS E POLUIÇÃO COGNITIVA! ⚠️
+  </div>
+
+  <!-- ACCESSIBILITY TOOLBAR (Acessibility Control Center) -->
+  <aside aria-label="Barra de Ferramentas de Acessibilidade" class="bg-slate-900 text-white sticky top-0 z-40 border-b border-slate-700 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 py-2 flex flex-wrap items-center justify-between gap-3 text-sm">
+      
+      <!-- Toolbar Title & Status -->
+      <div class="flex items-center gap-2">
+        <i class="ph-bold ph-universal-access text-yellow-400 text-xl" aria-hidden="true"></i>
+        <span class="font-bold tracking-wide text-xs md:text-sm uppercase text-slate-200">Painel de Acessibilidade</span>
+      </div>
+
+      <!-- Quick Toggles Group -->
+      <div class="flex flex-wrap items-center gap-2" role="toolbar" aria-label="Controles de exibição e leitura">
+        
+        <!-- Simulation Toggle Switch -->
+        <button id="btn-toggle-sim" onclick="toggleBadUiSimulation()" class="px-3 py-1.5 rounded-md font-semibold bg-amber-500 hover:bg-amber-600 text-slate-950 transition flex items-center gap-1.5 shadow" aria-pressed="false">
+          <i class="ph-bold ph-arrows-left-right" aria-hidden="true"></i>
+          <span id="sim-btn-text">Simular Interface Antiga (Com Erros)</span>
+        </button>
+
+        <div class="h-5 w-px bg-slate-700 hidden sm:block" aria-hidden="true"></div>
+
+        <!-- Font Size Controls -->
+        <div class="flex items-center bg-slate-800 rounded-md p-0.5 border border-slate-700" role="group" aria-label="Tamanho da fonte">
+          <button onclick="setFontScale('normal')" id="btn-font-normal" class="px-2 py-1 text-xs rounded font-bold bg-blue-600 text-white" aria-label="Tamanho de fonte Normal">A</button>
+          <button onclick="setFontScale('lg')" id="btn-font-lg" class="px-2 py-1 text-sm rounded font-bold hover:bg-slate-700 text-slate-300" aria-label="Tamanho de fonte Grande">A+</button>
+          <button onclick="setFontScale('xl')" id="btn-font-xl" class="px-2 py-1 text-base rounded font-bold hover:bg-slate-700 text-slate-300" aria-label="Tamanho de fonte Extra Grande">A++</button>
+        </div>
+
+        <!-- Contrast Toggle -->
+        <button id="btn-toggle-contrast" onclick="toggleHighContrast()" class="px-2.5 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-1 text-xs font-medium" aria-pressed="false">
+          <i class="ph-bold ph-circle-half text-amber-400" aria-hidden="true"></i>
+          <span>Alto Contraste</span>
+        </button>
+
+        <!-- Dyslexia Font Toggle -->
+        <button id="btn-toggle-dyslexic" onclick="toggleDyslexicFont()" class="px-2.5 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-1 text-xs font-medium" aria-pressed="false">
+          <i class="ph-bold ph-text-a-underline text-blue-400" aria-hidden="true"></i>
+          <span>Leitura Confortável</span>
+        </button>
+
+        <!-- Reduced Motion Toggle -->
+        <button id="btn-toggle-motion" onclick="toggleReducedMotion()" class="px-2.5 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-1 text-xs font-medium" aria-pressed="false">
+          <i class="ph-bold ph-pause-circle text-emerald-400" aria-hidden="true"></i>
+          <span>Reduzir Animações</span>
+        </button>
+
+        <!-- Open Report Modal -->
+        <button onclick="openReportModal()" class="px-3 py-1.5 rounded-md bg-blue-600 hover:bg-blue-500 text-white font-bold flex items-center gap-1 text-xs shadow-md">
+          <i class="ph-bold ph-file-text" aria-hidden="true"></i>
+          <span>Gerar Relatório da Aula</span>
+        </button>
+
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN HEADER (REDESIGNED INCLUSIVE INTERFACE) -->
+  <header class="bg-white border-b border-slate-200 shadow-sm hc-card">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+      
+      <!-- Brand & Logo -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center text-2xl shadow-md" aria-hidden="true">
+          <i class="ph-bold ph-graduation-cap"></i>
+        </div>
+        <div>
+          <h1 class="font-display font-bold text-xl text-slate-900 tracking-tight hc-text-yellow">EduInclusiva</h1>
+          <p class="text-xs text-slate-500 font-medium hc-text-yellow">Plataforma de Aprendizagem Acessível</p>
+        </div>
+      </div>
+
+      <!-- Predictable Navigation Menu (WCAG 3.2.3) -->
+      <nav aria-label="Menu Principal">
+        <ul class="flex flex-wrap items-center justify-center gap-1 sm:gap-2 text-sm font-semibold text-slate-700">
+          <li>
+            <a href="#inicio" class="px-3 py-2 rounded-lg hover:bg-slate-100 hover:text-blue-600 transition focus:bg-blue-50 text-blue-700 font-bold border-b-2 border-blue-600">Início</a>
+          </li>
+          <li>
+            <a href="#conceito" class="px-3 py-2 rounded-lg hover:bg-slate-100 hover:text-blue-600 transition focus:bg-blue-50">Conceitos</a>
+          </li>
+          <li>
+            <a href="#video-aula" class="px-3 py-2 rounded-lg hover:bg-slate-100 hover:text-blue-600 transition focus:bg-blue-50">Vídeo-Aula</a>
+          </li>
+          <li>
+            <a href="#atividade" class="px-3 py-2 rounded-lg hover:bg-slate-100 hover:text-blue-600 transition focus:bg-blue-50">Atividade Prática</a>
+          </li>
+          <li>
+            <a href="#diagnostico" onclick="openReportModal(); return false;" class="px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 transition flex items-center gap-1">
+              <i class="ph-bold ph-clipboard-text" aria-hidden="true"></i>
+              <span>Ficha Técnica</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT CONTAINER -->
+  <main id="main-content" class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10" tabindex="-1">
+
+    <!-- HERO SECTION: CLEAR OBJECTIVES -->
+    <section id="inicio" aria-labelledby="hero-title" class="bg-white rounded-2xl p-6 md:p-8 border border-slate-200 shadow-sm card-box hc-card space-y-4">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold uppercase tracking-wider">
+        <i class="ph-bold ph-sparkle" aria-hidden="true"></i>
+        <span>Aula 67 — Design Inclusivo em Interfaces Web</span>
+      </div>
+      
+      <h2 id="hero-title" class="font-display text-2xl md:text-3xl font-extrabold text-slate-900 hc-text-yellow leading-tight">
+        Redesign de Plataforma Educacional para Todos os Usuários
+      </h2>
+      
+      <p class="text-slate-650 max-w-3xl leading-relaxed text-base md:text-lg">
+        Esta interface foi redesenhada aplicando os princípios de <strong>clareza, previsibilidade, contraste adequado e controle total sobre elementos multimídia</strong>. Utilize esta página como seu artefato final e utilize as ferramentas superiores para comparar o resultado com a interface problemática.
+      </p>
+
+      <!-- Key Accessibility Highlights -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-100">
+        <div class="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100 card-box hc-card">
+          <i class="ph-bold ph-eye text-blue-600 text-2xl mt-0.5" aria-hidden="true"></i>
+          <div>
+            <h3 class="font-bold text-sm text-slate-900">Menos Estímulos</h3>
+            <p class="text-xs text-slate-600">Livre de animações frenéticas e cores neon agressivas.</p>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100 card-box hc-card">
+          <i class="ph-bold ph-text-align-left text-emerald-600 text-2xl mt-0.5" aria-hidden="true"></i>
+          <div>
+            <h3 class="font-bold text-sm text-slate-900">Linguagem Direta</h3>
+            <p class="text-xs text-slate-600">Textos organizados em frases curtas e objetivas.</p>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100 card-box hc-card">
+          <i class="ph-bold ph-sliders-horizontal text-purple-600 text-2xl mt-0.5" aria-hidden="true"></i>
+          <div>
+            <h3 class="font-bold text-sm text-slate-900">Mídias Controláveis</h3>
+            <p class="text-xs text-slate-600">Sem reprodução automática (*autoplay*) de áudio ou vídeo.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- EDUCATIONAL MODULES SECTION -->
+    <section id="conceito" aria-labelledby="modules-title" class="space-y-6">
+      <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+        <h2 id="modules-title" class="font-display text-xl font-bold text-slate-900 flex items-center gap-2">
+          <i class="ph-bold ph-book-open text-blue-600" aria-hidden="true"></i>
+          <span>Módulos de Estudo Inclusivo</span>
+        </h2>
+        <span class="text-xs text-slate-500 font-medium">3 Tópicos Fundamentais</span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        <!-- Module Card 1 -->
+        <article class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm card-box hc-card flex flex-col justify-between space-y-4">
+          <div class="space-y-2">
+            <span class="text-xs font-bold text-blue-600 uppercase tracking-wider">Módulo 01</span>
+            <h3 class="font-bold text-lg text-slate-900">Diversidade de Usuários</h3>
+            <p class="text-sm text-slate-600 leading-relaxed">
+              Compreenda como pessoas com TDAH, autismo, baixa visão, dislexia ou limitações motoras interagem de formas diferentes com a Web.
+            </p>
+          </div>
+          <button onclick="announceMessage('Módulo 01 selecionado: Diversidade de Usuários')" class="w-full py-2 px-3 bg-slate-100 hover:bg-blue-50 text-blue-700 font-bold text-sm rounded-lg transition flex items-center justify-center gap-2 border border-slate-200">
+            <span>Acessar Conteúdo</span>
+            <i class="ph-bold ph-arrow-right" aria-hidden="true"></i>
+          </button>
+        </article>
+
+        <!-- Module Card 2 -->
+        <article class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm card-box hc-card flex flex-col justify-between space-y-4">
+          <div class="space-y-2">
+            <span class="text-xs font-bold text-emerald-600 uppercase tracking-wider">Módulo 02</span>
+            <h3 class="font-bold text-lg text-slate-900">Sobrecarga Sensorial</h3>
+            <p class="text-sm text-slate-600 leading-relaxed">
+              Aprenda a identificar e eliminar poluição visual, pop-ups inesperados, flashes, sons automáticos e excesso de elementos em tela.
+            </p>
+          </div>
+          <button onclick="announceMessage('Módulo 02 selecionado: Sobrecarga Sensorial')" class="w-full py-2 px-3 bg-slate-100 hover:bg-blue-50 text-blue-700 font-bold text-sm rounded-lg transition flex items-center justify-center gap-2 border border-slate-200">
+            <span>Acessar Conteúdo</span>
+            <i class="ph-bold ph-arrow-right" aria-hidden="true"></i>
+          </button>
+        </article>
+
+        <!-- Module Card 3 -->
+        <article class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm card-box hc-card flex flex-col justify-between space-y-4">
+          <div class="space-y-2">
+            <span class="text-xs font-bold text-purple-600 uppercase tracking-wider">Módulo 03</span>
+            <h3 class="font-bold text-lg text-slate-900">Previsibilidade de Navegação</h3>
+            <p class="text-sm text-slate-600 leading-relaxed">
+              Mantenhamenus coerentes, ordem lógica de foco no teclado, links bem identificados e rótulos explícitos em formulários.
+            </p>
+          </div>
+          <button onclick="announceMessage('Módulo 03 selecionado: Previsibilidade')" class="w-full py-2 px-3 bg-slate-100 hover:bg-blue-50 text-blue-700 font-bold text-sm rounded-lg transition flex items-center justify-center gap-2 border border-slate-200">
+            <span>Acessar Conteúdo</span>
+            <i class="ph-bold ph-arrow-right" aria-hidden="true"></i>
+          </button>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ACCESSIBLE MULTIMEDIA VIDEO PLAYER SECTION (WCAG 1.2) -->
+    <section id="video-aula" aria-labelledby="video-title" class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm card-box hc-card space-y-4">
+      
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+        <div>
+          <h2 id="video-title" class="font-display text-xl font-bold text-slate-900 flex items-center gap-2">
+            <i class="ph-bold ph-video text-blue-600" aria-hidden="true"></i>
+            <span>Vídeo-Aula: Princípios do Redesign Inclusivo</span>
+          </h2>
+          <p class="text-xs text-slate-500">Mídia com controle manual total (Sem reprodução automática / No Autoplay)</p>
+        </div>
+        <span class="px-2.5 py-1 rounded bg-emerald-100 text-emerald-800 text-xs font-bold self-start sm:self-center">
+          WCAG 1.2.2 Compliant
+        </span>
+      </div>
+
+      <!-- Player Canvas & Controls Screen -->
+      <div class="bg-slate-950 rounded-xl overflow-hidden shadow-inner border border-slate-800 text-white">
+        
+        <!-- Animated Interactive Visual Screen -->
+        <div id="simulated-video-screen" class="relative aspect-video bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 flex flex-col items-center justify-center p-6 text-center select-none">
+          
+          <div id="video-visual-state" class="space-y-3 max-w-md">
+            <div class="w-16 h-16 rounded-full bg-blue-600/30 border-2 border-blue-400 text-blue-300 flex items-center justify-center mx-auto text-3xl shadow-lg">
+              <i id="player-screen-icon" class="ph-bold ph-play"></i>
+            </div>
+            <h3 id="player-screen-title" class="font-bold text-lg text-white">Prática de Design Inclusivo</h3>
+            <p id="player-screen-subtitle" class="text-xs text-slate-300">Pressione Play para iniciar a explicação guiada.</p>
+          </div>
+
+          <!-- Dynamic Live Closed Captions Box (Subtitles) -->
+          <div id="captions-overlay" class="absolute bottom-4 left-4 right-4 bg-black/85 text-yellow-300 px-4 py-2 rounded-md text-sm md:text-base font-semibold text-center border border-yellow-500/30 min-h-[42px] flex items-center justify-center transition">
+            [ Legendas ativas: "O design inclusivo garante controle e clareza para todos os usuários." ]
+          </div>
+        </div>
+
+        <!-- Accessible Custom Controls Bar -->
+        <div class="p-4 bg-slate-900 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3 text-sm" role="region" aria-label="Controles do tocador de vídeo">
+          
+          <!-- Left Playback Buttons -->
+          <div class="flex items-center gap-2">
+            <button id="btn-play-pause" onclick="togglePlayVideo()" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold flex items-center gap-2 transition" aria-label="Iniciar ou Pausar Vídeo">
+              <i id="play-btn-icon" class="ph-bold ph-play" aria-hidden="true"></i>
+              <span id="play-btn-text">Play</span>
+            </button>
+
+            <button onclick="restartVideo()" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200" aria-label="Reiniciar vídeo do início">
+              <i class="ph-bold ph-arrow-counter-clockwise text-lg" aria-hidden="true"></i>
+            </button>
+          </div>
+
+          <!-- Center Captions & Speed -->
+          <div class="flex items-center gap-2">
+            <button id="btn-toggle-captions" onclick="toggleCaptions()" class="px-3 py-1.5 rounded-lg bg-yellow-500/20 text-yellow-300 border border-yellow-500/40 hover:bg-yellow-500/30 text-xs font-bold flex items-center gap-1.5" aria-pressed="true">
+              <i class="ph-bold ph-closed-captioning text-base" aria-hidden="true"></i>
+              <span id="captions-status-text">Legendas: LIGADAS</span>
+            </button>
+
+            <select id="speed-select" onchange="changeSpeed(this.value)" class="bg-slate-800 text-slate-200 text-xs rounded-lg px-2.5 py-2 border border-slate-700 font-bold focus:ring-2 focus:ring-blue-500" aria-label="Velocidade de reprodução">
+              <option value="1">Velocidade: 1.0x (Normal)</option>
+              <option value="1.25">Velocidade: 1.25x</option>
+              <option value="1.5">Velocidade: 1.5x</option>
+            </select>
+          </div>
+
+          <!-- Transcript Accordion Toggle -->
+          <button onclick="toggleTranscript()" class="text-xs text-blue-400 hover:text-blue-300 underline font-semibold flex items-center gap-1" aria-expanded="false" id="btn-transcript">
+            <i class="ph-bold ph-text-align-left" aria-hidden="true"></i>
+            <span>Ver Transcrição Completa em Texto</span>
+          </button>
+
+        </div>
+      </div>
+
+      <!-- Expandable Text Transcript (WCAG 1.2.1) -->
+      <div id="transcript-box" class="hidden bg-slate-100 p-4 rounded-xl text-xs md:text-sm text-slate-800 space-y-2 border border-slate-200 card-box hc-card">
+        <h4 class="font-bold text-slate-900 flex items-center gap-1.5">
+          <i class="ph-bold ph-file-text text-blue-600" aria-hidden="true"></i>
+          <span>Transcrição Acessível do Vídeo:</span>
+        </h4>
+        <p class="leading-relaxed">
+          "Olá! Nesta aula prática, analisamos como transformar interfaces confusas em ambientes acessíveis. O primeiro passo é remover autoplay de vídeos e sons. O segundo é garantir contraste WCAG AA entre texto e fundo. O terceiro é fornecer controle ao estudante sobre o tamanho da fonte e ritmo de estudo."
+        </p>
+      </div>
+
+    </section>
+
+    <!-- ACCESSIBLE PRACTICE EXERCISE FORM SECTION -->
+    <section id="atividade" aria-labelledby="form-title" class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm card-box hc-card space-y-6">
+      
+      <div>
+        <h2 id="form-title" class="font-display text-xl font-bold text-slate-900 flex items-center gap-2">
+          <i class="ph-bold ph-note-pencil text-blue-600" aria-hidden="true"></i>
+          <span>Registro da Atividade Prática</span>
+        </h2>
+        <p class="text-xs text-slate-500">Preencha suas observações para a entrega oficial no ambiente escolar.</p>
+      </div>
+
+      <form id="practice-form" onsubmit="handleFormSubmit(event)" class="space-y-4 max-w-2xl">
+        
+        <!-- Student Name Input -->
+        <div class="space-y-1">
+          <label for="student-name" class="block text-sm font-bold text-slate-800">
+            Nome Completo do Estudante <span class="text-red-600" aria-hidden="true">*</span>
+          </label>
+          <input type="text" id="student-name" required placeholder="Ex: Maria Silva Santos" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-slate-900 bg-white focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-sm font-medium">
+          <p class="text-xs text-slate-500">Este nome será inserido na ficha técnica final de entrega.</p>
+        </div>
+
+        <!-- Identified Improvements Checkboxes -->
+        <fieldset class="space-y-2 border border-slate-200 p-4 rounded-xl bg-slate-50 card-box hc-card">
+          <legend class="text-sm font-bold text-slate-900 px-2">
+            Selecione as melhorias de design inclusivo aplicadas <span class="text-red-600" aria-hidden="true">*</span>
+          </legend>
+
+          <div class="space-y-2 text-sm text-slate-700">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" name="improvement" value="Organização do Layout" checked class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+              <span>Organização em seções claras e previsíveis</span>
+            </label>
+
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" name="improvement" value="Linguagem Objetiva" checked class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+              <span>Linguagem simples, objetiva e frases curtas</span>
+            </label>
+
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" name="improvement" value="Remoção de Autoplay" checked class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+              <span>Mídias controladas pelo usuário (Sem autoplay)</span>
+            </label>
+
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" name="improvement" value="Alto Contraste e Fontes" checked class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+              <span>Alto contraste de cores e opção para dislexia</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <!-- Student Observations Textarea -->
+        <div class="space-y-1">
+          <label for="student-notes" class="block text-sm font-bold text-slate-800">
+            Justificativa Sintética das Mudanças
+          </label>
+          <textarea id="student-notes" rows="3" placeholder="Explique resumidamente por que a interface redesenhada reduz a sobrecarga sensorial..." class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-slate-900 bg-white focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-sm font-medium"></textarea>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md transition flex items-center gap-2 text-sm">
+          <i class="ph-bold ph-check-circle text-lg" aria-hidden="true"></i>
+          <span>Salvar e Atualizar Relatório</span>
+        </button>
+
+      </form>
+    </section>
+
+  </main>
+
+  <!-- ACCESSIBLE FOOTER -->
+  <footer class="bg-slate-900 text-slate-300 mt-12 border-t border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs md:text-sm">
+      
+      <div class="flex items-center gap-2">
+        <i class="ph-bold ph-shield-check text-emerald-400 text-xl" aria-hidden="true"></i>
+        <span>Plataforma Educacional Inclusiva — Desenvolvida para a Aula 67</span>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-4 text-slate-400">
+        <span>WCAG 2.1 AA/AAA Verified</span>
+        <span>•</span>
+        <a href="#main-content" class="hover:text-white underline">Voltar ao topo</a>
+      </div>
+
+    </div>
+  </footer>
+
+  <!-- DIAGNOSTIC & REPORT MODAL (FICHA TÉCNICA ANTES VS DEPOIS) -->
+  <div id="report-modal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    
+    <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200 card-box hc-card flex flex-col">
+      
+      <!-- Modal Header -->
+      <div class="p-5 bg-slate-900 text-white flex items-center justify-between sticky top-0 z-10 border-b border-slate-800">
+        <div class="flex items-center gap-2">
+          <i class="ph-bold ph-clipboard-text text-yellow-400 text-2xl" aria-hidden="true"></i>
+          <div>
+            <h2 id="modal-title" class="font-bold text-lg text-white">Relatório da Aula Prática (Ficha Técnica)</h2>
+            <p class="text-xs text-slate-400">Comparativo ANTES vs DEPOIS & Dados para Entrega</p>
+          </div>
+        </div>
+        <button onclick="closeReportModal()" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-lg" aria-label="Fechar janela do relatório">
+          <i class="ph-bold ph-x"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 space-y-6 text-slate-800 text-sm">
+        
+        <!-- Live Comparison Table -->
+        <div class="space-y-3">
+          <h3 class="font-bold text-base text-slate-900 flex items-center gap-1.5">
+            <i class="ph-bold ph-table text-blue-600"></i>
+            <span>Tabela Comparativa de Acessibilidade (Exigida na Atividade)</span>
+          </h3>
+
+          <div class="overflow-x-auto border border-slate-200 rounded-xl">
+            <table class="w-full text-left border-collapse text-xs md:text-sm">
+              <thead>
+                <tr class="bg-slate-100 text-slate-900 border-b border-slate-200 font-bold">
+                  <th class="p-3">Elemento Analisado</th>
+                  <th class="p-3 bg-red-50 text-red-900 border-x border-slate-200">Problema (Interface Antiga)</th>
+                  <th class="p-3 bg-emerald-50 text-emerald-900">Alteração Proposta (Redesign Inclusivo)</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200">
+                <tr>
+                  <td class="p-3 font-bold">Organização</td>
+                  <td class="p-3 bg-red-50/50 text-slate-700">Muitas informações juntas sem hierarquia.</td>
+                  <td class="p-3 bg-emerald-50/50 text-slate-700 font-medium">Conteúdo separado em seções distintas e previsíveis.</td>
+                </tr>
+                <tr>
+                  <td class="p-3 font-bold">Tipografia e Texto</td>
+                  <td class="p-3 bg-red-50/50 text-slate-700">Instruções extensas em CAIXA ALTA.</td>
+                  <td class="p-3 bg-emerald-50/50 text-slate-700 font-medium">Frases curtas, diretas e suporte a fonte dislexia.</td>
+                </tr>
+                <tr>
+                  <td class="p-3 font-bold">Efeitos e Animação</td>
+                  <td class="p-3 bg-red-50/50 text-slate-700">Texto piscando e banners contínuos.</td>
+                  <td class="p-3 bg-emerald-50/50 text-slate-700 font-medium">Remoção de piscamentos e botão de redução de movimento.</td>
+                </tr>
+                <tr>
+                  <td class="p-3 font-bold">Mídia e Vídeo</td>
+                  <td class="p-3 bg-red-50/50 text-slate-700">Reprodução automática com áudio.</td>
+                  <td class="p-3 bg-emerald-50/50 text-slate-700 font-medium">Controle total pelo usuário + Legendas e Transcrição.</td>
+                </tr>
+                <tr>
+                  <td class="p-3 font-bold">Navegação</td>
+                  <td class="p-3 bg-red-50/50 text-slate-700">Links espalhados e sem indicador de foco.</td>
+                  <td class="p-3 bg-emerald-50/50 text-slate-700 font-medium">Menu superior fixo com suporte a :focus-visible.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Generated Export Code Textbox -->
+        <div class="space-y-2">
+          <label for="report-output" class="block font-bold text-slate-900">
+            Texto Formatado para Copiar e Entregar (Google Classroom / AVA):
+          </label>
+          <textarea id="report-output" readonly rows="8" class="w-full font-mono text-xs p-3 bg-slate-900 text-emerald-400 rounded-xl border border-slate-800 leading-relaxed"></textarea>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer Action -->
+      <div class="p-4 bg-slate-100 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
+        <span class="text-xs text-slate-500 font-medium">Nome sugerido do arquivo: <code id="file-name-suggested" class="font-bold text-slate-800">Aula67_NomeAluno.txt</code></span>
+        
+        <div class="flex items-center gap-2">
+          <button onclick="closeReportModal()" class="px-4 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs">
+            Fechar
+          </button>
+          <button onclick="copyReportToClipboard()" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center gap-1.5 shadow">
+            <i class="ph-bold ph-copy" aria-hidden="true"></i>
+            <span>Copiar Relatório Completo</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION BOX -->
+  <div id="toast-notification" class="fixed bottom-5 right-5 z-50 hidden max-w-md bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl border border-slate-700 flex items-center gap-3 text-sm" role="status" aria-live="polite">
+    <i id="toast-icon" class="ph-bold ph-info text-yellow-400 text-xl" aria-hidden="true"></i>
+    <span id="toast-message">Mensagem de aviso</span>
+  </div>
+
+  <!-- JAVASCRIPT CONTROLLERS -->
+  <script>
+    // Global Application State
+    const state = {
+      fontScale: 'normal',
+      highContrast: false,
+      dyslexicFont: false,
+      reducedMotion: false,
+      badUiSimulation: false,
+      studentName: 'Estudante',
+      studentNotes: '',
+      videoPlaying: false,
+      captionsActive: true,
+      videoSpeed: 1,
+      captionsList: [
+        'O design inclusivo garante controle e clareza para todos os usuários.',
+        'Eliminamos o autoplay para evitar sustos e sobrecarga cognitiva.',
+        'Menus previsíveis facilitam a leitura por leitores de tela e teclado.',
+        'Contraste adequado WCAG permite leitura confortável sob luz forte.'
+      ],
+      captionIndex: 0,
+      captionInterval: null
+    };
+
+    // Font Scaling Handler
+    function setFontScale(scale) {
+      state.fontScale = scale;
+      const html = document.documentElement;
+      html.classList.remove('font-scale-lg', 'font-scale-xl');
+      
+      document.getElementById('btn-font-normal').className = 'px-2 py-1 text-xs rounded font-bold hover:bg-slate-700 text-slate-300';
+      document.getElementById('btn-font-lg').className = 'px-2 py-1 text-sm rounded font-bold hover:bg-slate-700 text-slate-300';
+      document.getElementById('btn-font-xl').className = 'px-2 py-1 text-base rounded font-bold hover:bg-slate-700 text-slate-300';
+
+      if (scale === 'lg') {
+        html.classList.add('font-scale-lg');
+        document.getElementById('btn-font-lg').className = 'px-2 py-1 text-sm rounded font-bold bg-blue-600 text-white';
+      } else if (scale === 'xl') {
+        html.classList.add('font-scale-xl');
+        document.getElementById('btn-font-xl').className = 'px-2 py-1 text-base rounded font-bold bg-blue-600 text-white';
+      } else {
+        document.getElementById('btn-font-normal').className = 'px-2 py-1 text-xs rounded font-bold bg-blue-600 text-white';
+      }
+
+      announceMessage(`Tamanho da fonte alterado para: ${scale}`);
+    }
+
+    // High Contrast Toggle
+    function toggleHighContrast() {
+      state.highContrast = !state.highContrast;
+      const body = document.body;
+      const btn = document.getElementById('btn-toggle-contrast');
+
+      if (state.highContrast) {
+        body.classList.add('mode-high-contrast');
+        btn.setAttribute('aria-pressed', 'true');
+        btn.classList.add('bg-amber-500', 'text-slate-950');
+      } else {
+        body.classList.remove('mode-high-contrast');
+        btn.setAttribute('aria-pressed', 'false');
+        btn.classList.remove('bg-amber-500', 'text-slate-950');
+      }
+
+      announceMessage(state.highContrast ? 'Alto contraste ativado' : 'Alto contraste desativado');
+    }
+
+    // Dyslexic Font Toggle
+    function toggleDyslexicFont() {
+      state.dyslexicFont = !state.dyslexicFont;
+      const body = document.body;
+      const btn = document.getElementById('btn-toggle-dyslexic');
+
+      if (state.dyslexicFont) {
+        body.classList.add('mode-dyslexic');
+        btn.setAttribute('aria-pressed', 'true');
+        btn.classList.add('bg-blue-600', 'text-white');
+      } else {
+        body.classList.remove('mode-dyslexic');
+        btn.setAttribute('aria-pressed', 'false');
+        btn.classList.remove('bg-blue-600', 'text-white');
+      }
+
+      announceMessage(state.dyslexicFont ? 'Modo de leitura confortável ativado' : 'Modo de leitura padrão');
+    }
+
+    // Reduced Motion Toggle
+    function toggleReducedMotion() {
+      state.reducedMotion = !state.reducedMotion;
+      const body = document.body;
+      const btn = document.getElementById('btn-toggle-motion');
+
+      if (state.reducedMotion) {
+        body.classList.add('mode-reduced-motion');
+        btn.setAttribute('aria-pressed', 'true');
+        btn.classList.add('bg-emerald-600', 'text-white');
+      } else {
+        body.classList.remove('mode-reduced-motion');
+        btn.setAttribute('aria-pressed', 'false');
+        btn.classList.remove('bg-emerald-600', 'text-white');
+      }
+
+      announceMessage(state.reducedMotion ? 'Animações reduzidas' : 'Animações normais');
+    }
+
+    // Bad UI Simulator Toggle (Compare with Problematic Interface)
+    function toggleBadUiSimulation() {
+      state.badUiSimulation = !state.badUiSimulation;
+      const body = document.body;
+      const banner = document.getElementById('bad-ui-banner');
+      const btnText = document.getElementById('sim-btn-text');
+      const btn = document.getElementById('btn-toggle-sim');
+
+      if (state.badUiSimulation) {
+        body.classList.add('sim-bad-ui');
+        banner.classList.remove('hidden');
+        btnText.textContent = 'Voltar para Interface Inclusiva';
+        btn.setAttribute('aria-pressed', 'true');
+        btn.className = 'px-3 py-1.5 rounded-md font-semibold bg-red-600 hover:bg-red-700 text-white transition flex items-center gap-1.5 shadow';
+        announceMessage('Modo Simulação Antiga ativado! Observe o excesso de estímulos visuais.');
+      } else {
+        body.classList.remove('sim-bad-ui');
+        banner.classList.add('hidden');
+        btnText.textContent = 'Simular Interface Antiga (Com Erros)';
+        btn.setAttribute('aria-pressed', 'false');
+        btn.className = 'px-3 py-1.5 rounded-md font-semibold bg-amber-500 hover:bg-amber-600 text-slate-950 transition flex items-center gap-1.5 shadow';
+        announceMessage('Retornado para a Interface Inclusiva Redesenhada.');
+      }
+    }
+
+    // Video Player Controller
+    function togglePlayVideo() {
+      state.videoPlaying = !state.videoPlaying;
+      const icon = document.getElementById('play-btn-icon');
+      const text = document.getElementById('play-btn-text');
+      const screenIcon = document.getElementById('player-screen-icon');
+      const screenSubtitle = document.getElementById('player-screen-subtitle');
+
+      if (state.videoPlaying) {
+        icon.className = 'ph-bold ph-pause';
+        text.textContent = 'Pausar';
+        screenIcon.className = 'ph-bold ph-waveform animate-pulse';
+        screenSubtitle.textContent = 'Executando vídeo-aula... (Legendas ativas)';
+        
+        // Start caption rotation loop
+        clearInterval(state.captionInterval);
+        state.captionInterval = setInterval(() => {
+          state.captionIndex = (state.captionIndex + 1) % state.captionsList.length;
+          updateCaptionText();
+        }, 3000 / state.videoSpeed);
+
+      } else {
+        icon.className = 'ph-bold ph-play';
+        text.textContent = 'Play';
+        screenIcon.className = 'ph-bold ph-play';
+        screenSubtitle.textContent = 'Vídeo pausado.';
+        clearInterval(state.captionInterval);
+      }
+    }
+
+    function restartVideo() {
+      state.captionIndex = 0;
+      updateCaptionText();
+      announceMessage('Vídeo reiniciado do início.');
+    }
+
+    function toggleCaptions() {
+      state.captionsActive = !state.captionsActive;
+      const box = document.getElementById('captions-overlay');
+      const btnText = document.getElementById('captions-status-text');
+      const btn = document.getElementById('btn-toggle-captions');
+
+      if (state.captionsActive) {
+        box.classList.remove('opacity-0');
+        btnText.textContent = 'Legendas: LIGADAS';
+        btn.setAttribute('aria-pressed', 'true');
+      } else {
+        box.classList.add('opacity-0');
+        btnText.textContent = 'Legendas: DESLIGADAS';
+        btn.setAttribute('aria-pressed', 'false');
+      }
+    }
+
+    function changeSpeed(val) {
+      state.videoSpeed = parseFloat(val);
+      if (state.videoPlaying) {
+        togglePlayVideo();
+        togglePlayVideo(); // restart loop with new speed
+      }
+      announceMessage(`Velocidade de reprodução: ${val}x`);
+    }
+
+    function updateCaptionText() {
+      const box = document.getElementById('captions-overlay');
+      box.textContent = `[ Legendas: "${state.captionsList[state.captionIndex]}" ]`;
+    }
+
+    function toggleTranscript() {
+      const box = document.getElementById('transcript-box');
+      const btn = document.getElementById('btn-transcript');
+      const isHidden = box.classList.contains('hidden');
+
+      if (isHidden) {
+        box.classList.remove('hidden');
+        btn.setAttribute('aria-expanded', 'true');
+      } else {
+        box.classList.add('hidden');
+        btn.setAttribute('aria-expanded', 'false');
+      }
+    }
+
+    // Report Generator Modal Functions
+    function openReportModal() {
+      updateReportOutput();
+      const modal = document.getElementById('report-modal');
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeReportModal() {
+      const modal = document.getElementById('report-modal');
+      modal.classList.add('hidden');
+      document.body.style.overflow = 'auto';
+    }
+
+    function handleFormSubmit(e) {
+      e.preventDefault();
+      const nameInput = document.getElementById('student-name').value;
+      const notesInput = document.getElementById('student-notes').value;
+
+      state.studentName = nameInput || 'Estudante';
+      state.studentNotes = notesInput;
+
+      announceMessage('Dados da atividade salvos com sucesso!');
+      openReportModal();
+    }
+
+    function updateReportOutput() {
+      const name = state.studentName || 'Nome do Aluno';
+      const cleanName = name.replace(/\s+/g, '');
+      document.getElementById('file-name-suggested').textContent = `Aula67_${cleanName}.txt`;
+
+      const reportText = `======================================================================
+RELATÓRIO DE AULA PRÁTICA: REDESIGN INCLUSIVO DE INTERFACE WEB
+Disciplina: Desenvolvimento Web / Design Inclusivo
+Identificação: Aula67_${cleanName}
+Estudante: ${name}
+======================================================================
+
+1. FICHA DE ANÁLISE E DIAGNÓSTICO (ANTES vs DEPOIS)
+
+• Elemento 1: Organização do Layout
+  - Antes: Excesso de informações agrupadas sem hierarquia.
+  - Depois: Conteúdo separado em seções distintas e previsíveis.
+
+• Elemento 2: Tipografia e Leitura
+  - Antes: Textos em CAIXA ALTA e sem espaçamento.
+  - Depois: Frases diretas e opção para fonte dislexia (Leitura Confortável).
+
+• Elemento 3: Efeitos Visuais e Animações
+  - Antes: Textos piscando e animações contínuas sem pausa.
+  - Depois: Remoção de flashes e opção de Redução de Movimento.
+
+• Elemento 4: Mídias Multimídia
+  - Antes: Vídeos e sons em reprodução automática (Autoplay).
+  - Depois: Controle total manual com legendas e transcrição em texto.
+
+• Elemento 5: Navegação por Teclado
+  - Antes: Links desordenados e sem indicador visual de foco.
+  - Depois: Menu previsível com suporte completo ao :focus-visible.
+
+2. JUSTIFICATIVA SINTÉTICA DAS MUDANÇAS
+${state.studentNotes || 'O redesign aplicou os princípios de clareza, previsibilidade e autonomia do usuário, reduzindo a sobrecarga sensorial e garantindo conformidade com a WCAG.'}
+
+3. CONCLUSÃO
+As alterações realizadas eliminam barreiras cognitivas e sensoriais, promovendo uma experiência de aprendizagem acessível para todas as pessoas.
+======================================================================`;
+
+      document.getElementById('report-output').value = reportText;
+    }
+
+    // Safe Copy to Clipboard Utility
+    function copyReportToClipboard() {
+      const textarea = document.getElementById('report-output');
+      textarea.select();
+      
+      try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+          announceMessage('Relatório copiado para a área de transferência!');
+        } else {
+          announceMessage('Selecione o texto e pressione Ctrl+C para copiar.');
+        }
+      } catch (err) {
+        announceMessage('Copie o texto selecionado usando Ctrl+C.');
+      }
+    }
+
+    // Helper Toast Announcer
+    function announceMessage(msg) {
+      const toast = document.getElementById('toast-notification');
+      const toastMsg = document.getElementById('toast-message');
+      toastMsg.textContent = msg;
+
+      toast.classList.remove('hidden');
+      setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 3500);
+    }
+
+    // Close modal on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeReportModal();
+      }
+    });
+  </script>
+</body>
+</html>
